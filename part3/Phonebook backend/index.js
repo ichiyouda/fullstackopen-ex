@@ -1,10 +1,13 @@
 console.log("hello express");
 
+require('dotenv').config()
 const express = require('express')
 const app = express()
 
-const morgan = require('morgan')
+const Person = require('./models/person')
 
+// ----------- LOG ------------
+const morgan = require('morgan')
 morgan.token('postBody', req => {
     if (req.method === 'POST') {
         return JSON.stringify(req.body)
@@ -12,35 +15,22 @@ morgan.token('postBody', req => {
         return ''
     }
 })
-
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postBody'))
 
+// ------------ CORS ----------
+const cors = require('cors')
+app.use(cors())
 
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
+// ----------- FRONTEND ------------
+app.use(express.static('build'))
 
+
+/* get all persons */
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({})
+        .then(returnedP => {
+            res.json(returnedP)
+        })
 })
 
 
@@ -52,47 +42,61 @@ app.get('/info', (req, res) => {
 })
 
 
+/* get specified person */
 app.get('/api/persons/:id', (req, res) => {
-    const theOne = persons.find(p => p.id === Number(req.params.id))
-    if (theOne) {
-        res.json(theOne)
-    } else {
-        res.status(404).send('404')
-    }
+    Person.findById(req.params.id)
+        .then(theOne => {
+            res.json(theOne)
+        })
+        .catch(err => {
+            res.status(404).send('404')
+            console.log(`error: ${err}`)
+        })
 })
 
 
+/* delete specified person */
 app.delete('/api/persons/:id', (req, res) => {
-    persons = persons.filter(p => p.id !== Number(req.params.id))
+    Person.deleteOne({id: req.params.id}, console.log)
     res.status(204).end()
 })
 
+
+/* add new person */
 app.use(express.json())
 app.post('/api/persons', (req, res) => {
-    const body = req.body
-    if (!body.name) {
+    const newOne = req.body
+    if (!newOne.name) {
         res.status(404).json({ error: 'name or number is missing' })
     } else {
-        const cretedP = persons.find(p => p.name === body.name)
-        if (cretedP) {
-            res.status(201).json({ error: 'name must be unique.'})
-        } else {
-            newPerson = {
-                "id": Math.random() * 1000,
-                "name": body.name,
-                "number": body.number
-            }
-            persons = persons.concat(newPerson)
-            res.json(newPerson)
-        }
+        Person.find({ name: newOne.name })
+            .then(returnedP => {
+                if (returnedP.name) {
+                    res.status(201).json({ error: 'name must be unique.' })
+                } else {
+                    new Person(newOne).save()
+                        .then(savedOne => {
+                            console.log(`savedOne ${savedOne}`)
+                            res.json(savedOne)
+                        })
+                }
+            })
+            .catch(err => {
+                console.log(`error: ${err}`)
+            })
+
     }
 })
 
+
+// -------------- handle unknown endpoint ------------
 const unknownEndpoint = (req, res) => {
     res.status(404).send({ error: 'unknown endpoint' })
-  }
-
+}
 app.use(unknownEndpoint)
 
-const PORT = 3001
-app.listen(PORT)
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+})
