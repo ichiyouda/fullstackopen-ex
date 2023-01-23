@@ -5,7 +5,8 @@ GET http://localhost:3001/api/persons
 ###
 GET http://localhost:3001/api/persons/63ce4111ff3385c0b03933d5
 
-# DELETE  http://localhost:3001/api/persons/1 HTTP/1.
+###
+DELETE  http://localhost:3001/api/persons/63ce7bd9b93e54c48acc3e0c HTTP/1.1
 
 ###
 POST http://localhost:3001/api/persons 
@@ -18,3 +19,12 @@ Content-Type: application/json
 
 ###
 GET http://localhost:3001/hi
+
+### 
+PUT http://localhost:3001/api/persons/63ce7c9f39e863d35e723474 HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "王哈哈",
+    "number": "123-466"
+}
