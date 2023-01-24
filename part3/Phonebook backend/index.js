@@ -6,6 +6,7 @@ const app = express()
 
 const Person = require('./models/person')
 
+
 // ----------- LOG ------------
 const morgan = require('morgan')
 morgan.token('postBody', req => {
@@ -17,20 +18,23 @@ morgan.token('postBody', req => {
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :postBody'))
 
+
 // ------------ CORS ----------
 const cors = require('cors')
 app.use(cors())
+
 
 // ----------- FRONTEND ------------
 app.use(express.static('build'))
 app.use(express.json())
 
 
+// ------------ restAPI -------------
+
 /* get all persons */
 app.get('/api/persons', (req, res) => {
     Person.find({})
         .then(returnedP => {
-            console.log(returnedP)            
             res.json(returnedP)
         })
 })
@@ -44,7 +48,7 @@ app.get('/info', (req, res) => {
                 <p>Phonebook has info for ${returnedP.length} people </p>
                 <p> ${new Date()}</p>`
             res.send(info)
-        })    
+        })
 })
 
 
@@ -76,37 +80,32 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 
 /* add new person */
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body
-    if (!body.name) {
-        res.status(404).json({ error: 'name or number is missing' })
-    } else {
-        Person.find({ name: body.name })
-            .then(returnedP => {
-                if (returnedP.name) {
-                    res.status(201).json({ error: 'name must be unique.' })
-                } else {
-                    // no need to create a person.5
-                    new Person(body).save()
-                        .then(savedOne => {
-                            console.log(`savedOne ${savedOne}`)
-                            res.json(savedOne)
-                        })
-                }
-            })
-            .catch(err => {
-                console.log(`error: ${err}`)
-            })
-
-    }
+    Person.find({ name: body.name })
+        .then(returnedP => {
+            if (returnedP.name) {
+                res.status(201).json({ error: 'name must be unique.' })
+            } else {
+                new Person(body).save()
+                    .then(savedOne => {
+                        console.log(`savedOne ${savedOne}`)
+                        res.json(savedOne)
+                    })
+                    .catch(err => next(err))
+            }
+        })
 })
 
 
 /* update a person */
 app.put('/api/persons/:id', (req, res, k) => {
-    const person = req.body
-    console.log(`${person}`)
-    Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    const { name, number } = req.body
+    Person.findByIdAndUpdate(
+        req.params.id,
+        { name, number },
+        { runValidators: true, context: 'query', new: true }
+    )
         .then(updatedP => {
             res.json(updatedP)
         })
@@ -121,21 +120,25 @@ const unknownEndpoint = (req, res) => {
 app.use(unknownEndpoint)
 
 
+// --------------- Port -----------------
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
 
 
+// ---------------- error handle ---------------
 const errorHandler = (error, request, response, next) => {
     console.error(error.message)
 
     if (error.name === 'CastError') {
         return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
     }
 
     next(error)
 }
 
 // this has to be the last loaded middleware.
-app.use(errorHandler)
+app.use(errorHandler) 
