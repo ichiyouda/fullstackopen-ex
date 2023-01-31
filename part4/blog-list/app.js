@@ -9,7 +9,6 @@ const middleware = require('./utils/middleware')
 
 mongoose.set('strictQuery', false)
 logger.info('connecting to mongoDB.')
-// eslint-disable-next-line no-undef
 const mongoUrl = config.MONGO_URI
 
 mongoose.connect(mongoUrl)

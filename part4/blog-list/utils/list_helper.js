@@ -18,8 +18,8 @@ const favoriteBlog = blogs => {
 
 
 const mostBlogs = blogs => {
-  const Authors = _.transform(_.countBy(blogs, blog => blog.author), (res, val, key) => {
-    res.push({
+  const Authors = _.transform(_.countBy(blogs, blog => blog.author), (acc, val, key) => {
+    acc.push({
       author: key,
       blogs: val
     })
@@ -29,8 +29,8 @@ const mostBlogs = blogs => {
 
 
 const mostLikes = blogs => {
-  const Authors = _.transform(_.groupBy(blogs, b => b.author), (res, val, key) => {
-    res.push({
+  const Authors = _.transform(_.groupBy(blogs, b => b.author), (acc, val, key) => {
+    acc.push({
       author: key,
       likes: val.reduce((acc, v) => acc + v.likes, 0)
     })

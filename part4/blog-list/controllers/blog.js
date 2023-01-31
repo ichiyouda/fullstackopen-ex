@@ -9,14 +9,25 @@ blogRoute.get('/', (_request, response) => {
     })
 })
 
-blogRoute.post('', (request, response) => {
-  const blog = new Blog(request.body)
+blogRoute.post('/', (request, response) => {
+  let postBlog = request.body
+  const keys = Object.keys(postBlog)
 
-  blog
-    .save()
-    .then(result => {
-      response.status(201).json(result)
-    })
+  // the title or url properties are missing
+  if (!(keys.includes('url') && keys.includes('title'))) {
+    response.status(400).send({ error: 'bad request' })
+  } else {
+    if (!keys.includes('likes')) {
+      postBlog = { ...postBlog, likes: 0 }
+    }
+    const blog = new Blog(postBlog)
+    blog
+      .save()
+      .then(result => {
+        response.status(201).json(result)
+      })
+  }
+
 })
 
 module.exports = blogRoute
