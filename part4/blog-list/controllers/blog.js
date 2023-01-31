@@ -1,15 +1,13 @@
 const blogRoute = require('express').Router()
 const Blog = require('../models/blog')
 
-blogRoute.get('/', (_request, response) => {
-  Blog
-    .find({})
-    .then(blogs => {
-      response.json(blogs)
-    })
+blogRoute.get('/', async (_request, response) => {
+  const blogs = await Blog.find({})
+  response.json(blogs)
 })
 
-blogRoute.post('/', (request, response) => {
+
+blogRoute.post('/', async (request, response) => {
   let postBlog = request.body
   const keys = Object.keys(postBlog)
 
@@ -21,12 +19,20 @@ blogRoute.post('/', (request, response) => {
       postBlog = { ...postBlog, likes: 0 }
     }
     const blog = new Blog(postBlog)
-    blog
-      .save()
-      .then(result => {
-        response.status(201).json(result)
-      })
+    const savedB = await blog.save()
+    response.json(savedB)
   }
+})
+
+blogRoute.delete('/:id', async (req, res) => {
+  await Blog.findByIdAndRemove(req.params.id)
+  res.status(204).end()
+})
+
+
+blogRoute.put('/:id', async (req, res) => {
+  const updatedB = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true })
+  res.json(updatedB)
 
 })
 

@@ -8,13 +8,13 @@ const helper = require('./test_helper')
 
 describe('API TEST', () => {
 
-  beforeEach(async () => {
-    console.log('a test is passing...')
-    await Blog.deleteMany()
-    for (let blog of helper.initBlogs) {
-      await new Blog(blog).save()
-    }
-  }, 100000)
+  // beforeEach(async () => {
+  //   console.log('a test is passing...')
+  //   await Blog.deleteMany()
+  //   for (let blog of helper.initBlogs) {
+  //     await new Blog(blog).save()
+  //   }
+  // }, 100000)
 
 
   // ex 4.8
@@ -89,6 +89,33 @@ describe('API TEST', () => {
       .expect(400)
   })
 
+
+  // ex 4.13
+  test('delete a blog by id', async () => {
+    const deletedBlog = helper.initBlogs[0]
+    await api
+      .delete(`/api/blogs/${deletedBlog._id}`)
+      .expect(204)
+
+    expect(await helper.blogsInDB()).not.toContainEqual(deletedBlog)
+  })
+
+
+  // ex 4.14
+  test('update the number of likes for a blog post', async () => {
+    const startBlog = helper.initBlogs[1]
+    const newBlog = { ...startBlog, likes: startBlog.likes + 1 }
+
+    const response = await api
+      .put(`/api/blogs/${newBlog._id}`)
+      .send(newBlog)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    expect(response.body.likes).toBe(newBlog.likes)
+  }, 10000)
+
+  
   afterAll(async () => {
     await mongoose.connection.close()
     console.log('mongo db is closed!')
