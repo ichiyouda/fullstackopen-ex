@@ -12,10 +12,10 @@ blogRoute.post('/', async (request, response) => {
   const keys = Object.keys(postBlog)
 
   // the title or url properties are missing
-  if (!(keys.includes('url') && keys.includes('title'))) {
+  if (! (keys.includes('url') && keys.includes('title'))) {
     response.status(400).send({ error: 'bad request' })
   } else {
-    if (!keys.includes('likes')) {
+    if (! keys.includes('likes')) {
       postBlog = { ...postBlog, likes: 0 }
     }
     const blog = new Blog(postBlog)
@@ -23,6 +23,7 @@ blogRoute.post('/', async (request, response) => {
     response.json(savedB)
   }
 })
+
 
 blogRoute.delete('/:id', async (req, res) => {
   await Blog.findByIdAndRemove(req.params.id)

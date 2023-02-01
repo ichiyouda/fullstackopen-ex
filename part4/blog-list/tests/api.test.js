@@ -1,24 +1,19 @@
-const app = require('../app')
 const mongoose = require('mongoose')
+const api = require('supertest')(require('../app'))
 const Blog = require('../models/blog')
 
-const api = require('supertest')(app)
 const helper = require('./test_helper')
 
+beforeEach(async () => {
+  console.log('init the test DB...')
+  await Blog.deleteMany()
+  await Blog.insertMany(helper.initBlogs)
+}, 10000)
 
 describe('API TEST', () => {
 
-  // beforeEach(async () => {
-  //   console.log('a test is passing...')
-  //   await Blog.deleteMany()
-  //   for (let blog of helper.initBlogs) {
-  //     await new Blog(blog).save()
-  //   }
-  // }, 100000)
-
-
   // ex 4.8
-  test('the numbers of blogs', async () => {
+  test('verified that the numbers of blogs', async () => {
     const response = await api
       .get('/api/blogs')
       .expect(200)
@@ -29,7 +24,7 @@ describe('API TEST', () => {
 
 
   // ex 4.9
-  test('Every blog has unique id', async () => {
+  test('verify that every blog has unique id', async () => {
     const response = await api.get('/api/blogs')
     for (let blog of response.body) {
       expect(blog.id).toBeDefined()
@@ -38,7 +33,7 @@ describe('API TEST', () => {
 
 
   // ex 4.10
-  test('create a new blog', async () => {
+  test('succeeds to create a new blog', async () => {
     const newBlog = {
       title: 'My memo link',
       author: 'YaoSen Wang',
@@ -59,7 +54,7 @@ describe('API TEST', () => {
 
 
   // ex 4.11
-  test('create a blog that hasn\'t like', async () => {
+  test('succeeds to create a blog that hasn\'t like', async () => {
     const newBlog = {
       title: 'My memo link',
       author: 'YaoSen Wang',
@@ -77,7 +72,7 @@ describe('API TEST', () => {
 
 
   // ex 4.12
-  test('the title or url properties are missing', async () => {
+  test('failed with the title or url properties are missing', async () => {
     const newBlog = {
       author: 'YaoSen Wang',
       url: 'https://writee.org/huang-juan'
@@ -91,8 +86,8 @@ describe('API TEST', () => {
 
 
   // ex 4.13
-  test('delete a blog by id', async () => {
-    const deletedBlog = helper.initBlogs[0]
+  test('succeeds to delete a blog by id', async () => {
+    const deletedBlog = helper.initBlogs[Math.floor(Math.random * helper.initBlogs.length)]
     await api
       .delete(`/api/blogs/${deletedBlog._id}`)
       .expect(204)
@@ -102,8 +97,8 @@ describe('API TEST', () => {
 
 
   // ex 4.14
-  test('update the number of likes for a blog post', async () => {
-    const startBlog = helper.initBlogs[1]
+  test('succeeds to update the number', async () => {
+    const startBlog = helper.initBlogs[Math.floor(Math.random * helper.initBlogs.length)]
     const newBlog = { ...startBlog, likes: startBlog.likes + 1 }
 
     const response = await api
@@ -113,12 +108,11 @@ describe('API TEST', () => {
       .expect('Content-Type', /application\/json/)
 
     expect(response.body.likes).toBe(newBlog.likes)
-  }, 10000)
+  })
 
-  
-  afterAll(async () => {
-    await mongoose.connection.close()
-    console.log('mongo db is closed!')
-  }, 10000)
 })
 
+afterAll(async () => {
+  await mongoose.connection.close()
+  console.log('mongo db is closed!')
+}, 10000)
