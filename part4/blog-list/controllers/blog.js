@@ -1,33 +1,66 @@
 const blogRoute = require('express').Router()
-const Blog = require('../models/blog')
 
-blogRoute.get('/', async (_request, response) => {
-  const blogs = await Blog.find({})
-  response.json(blogs)
+const Blog = require('../models/blog')
+const User = require('../models/user')
+
+blogRoute.get('/', async (_request, res) => {
+  const blogs = await Blog.find({}).populate('user', { blogs: 0 })
+  console.log(`blogs ${blogs.length}`)
+  res.json(blogs)
 })
 
 
-blogRoute.post('/', async (request, response) => {
-  let postBlog = request.body
-  const keys = Object.keys(postBlog)
-
-  // the title or url properties are missing
-  if (! (keys.includes('url') && keys.includes('title'))) {
-    response.status(400).send({ error: 'bad request' })
+blogRoute.post('/', async (req, res) => {
+  const userId = req.user
+  if (!userId) {
+    res.status(401).send({ error: 'invalid token' })
   } else {
-    if (! keys.includes('likes')) {
-      postBlog = { ...postBlog, likes: 0 }
+    const { title, url, likes } = req.body
+
+    // the title or url properties are missing
+    if (!(title && url)) {
+      res.status(400).send({ error: 'bad request' })
+    } else {
+      // likes property is missing
+      if (!likes) {
+        req.body = { ...req.body, likes: 0 }
+      }
+
+      // if can't find the user ?
+      const user = await User.findById(userId)
+      if (!user) {
+        res.status(404).send({ error: 'user can\'t find' })
+      } else {
+        const blog = new Blog({ ...req.body, user: user._id })
+        const savedBlog = await blog.save()
+
+        // update user
+        user.blogs = user.blogs.concat(blog._id)
+        await user.save()
+
+        res.json(savedBlog)
+      }
     }
-    const blog = new Blog(postBlog)
-    const savedB = await blog.save()
-    response.json(savedB)
   }
+
 })
 
 
 blogRoute.delete('/:id', async (req, res) => {
-  await Blog.findByIdAndRemove(req.params.id)
-  res.status(204).end()
+  const userId = req.user
+  if (!userId) {
+    res.status(401).send({ error: 'invalid token' })
+  } else {
+    const blog = await Blog.findById(req.params.id)
+    if (!blog) {
+      res.status(204).end()
+    } else if (userId !== blog.user.toString()) {
+      res.status(401).send({ error: 'invalid user' })
+    } else {
+      await Blog.findByIdAndRemove(req.params.id)
+      res.status(204).end()
+    }
+  }
 })
 
 
