@@ -1,7 +1,7 @@
 import axios from 'axios'
 const baseUrl = '/api/blogs'
 
-let token = null;
+let token = null
 
 const setToken = (t) => {
   token = `Bearer ${t}`
@@ -24,13 +24,33 @@ const addBlog = async newObj => {
   }
 
   const res = await axios.post(
-    '/api/blogs',
+    baseUrl,
     newObj,
     config)
-    
+
   return res.data
 
 }
 
+
+const updateBlog = async (id, newObj) => {
+  const res = await axios.put(`${baseUrl}/${id}`, newObj)
+  return res.data
+}
+
+const deleteBlog = async id => {
+  const config = {
+    headers: { Authorization: token }
+  }
+  await axios.delete(`${baseUrl}/${id}`, config)
+}
+
 // eslint-disable-next-line import/no-anonymous-default-export
-export default { getAll, login, setToken, addBlog }
+export default {
+  getAll,
+  login,
+  setToken,
+  addBlog,
+  updateBlog,
+  deleteBlog
+}

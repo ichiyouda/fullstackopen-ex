@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
 import Blog from './components/Blog'
+import BlogForm from './components/BlogFrom'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
 import blogService from './services/blogs'
 
 const App = () => {
@@ -45,10 +48,10 @@ const App = () => {
 
       setUser(loginUser)
       blogService.setToken(loginUser.token)
-      
+
       setUsername('')
       setPassword('')
-    } catch (excep) {      
+    } catch (excep) {
       setColor('red')
       setMsg('wrong username or password')
       setTimeout(() => {
@@ -87,36 +90,34 @@ const App = () => {
     </form>
   )
 
-
-  const inputForBlog = (val, setVal) => (
-    <>
-      <input
-        type="text"
-        value={val}
-        name={val}
-        onChange={({ target }) => setVal(target.value)}
-      />
-    </>
-  )
-
-
-  const handleCreateOne = async evt => {
+  const blogFormRef = useRef()
+  const handleNewBlog = async evt => {
     evt.preventDefault()
     try {
+
       const newBlog = { title, author, url }
       const savedBlog = await blogService.addBlog(newBlog)
+      console.log(savedBlog)
 
       setColor('green')
       setMsg(`a new blog ${savedBlog.title} by ${savedBlog.author} added`)
       setTimeout(() => {
         setMsg('')
       }, 3000)
-
       setBlogs(blogs.concat(savedBlog))
+
+      blogFormRef.current.toggleVisibility()
       setTitle('')
       setAuthor('')
       setUrl('')
     } catch (exp) {
+
+      setColor('red')
+      setMsg(`${exp}`)
+      setTimeout(() => {
+        setMsg('')
+      }, 6000)
+
       console.error(exp.name)
       setTitle('')
       setAuthor('')
@@ -124,31 +125,19 @@ const App = () => {
     }
   }
 
-  const CreateOneForm = () => (
-    <form onSubmit={handleCreateOne}>
-      <div>
-        <div>
-          title:
-          {inputForBlog(title, setTitle)}
-        </div>
-        <div>
-          author:
-          {inputForBlog(author, setAuthor)}
-        </div>
-        <div>
-          url:
-          {inputForBlog(url, setUrl)}
-        </div>
-      </div>
-      <button type='submit'>create</button>
-    </form>
-  )
 
   const Handlelogout = () => {
     setUser({})
     window.localStorage.clear()
   }
 
+  const removeBlog = id => {
+    setBlogs(blogs.filter(b => b.id !== id))
+  }
+
+
+  blogs.sort((a, b) => b.likes - a.likes)
+  // conditional render
   if (!user.username) {
     return (
       <>
@@ -165,10 +154,29 @@ const App = () => {
         <p>{user.username} logged in
           <button onClick={Handlelogout}>logout</button>
         </p>
-        {CreateOneForm()}
+        <Togglable
+          openLabel='create new note'
+          closeLabel='cancel'
+          ref={blogFormRef}>
+          <BlogForm
+            handleSubmit={handleNewBlog}
+            setTitle={setTitle}
+            setAuthor={setAuthor}
+            setUrl={setUrl}
+            title={title}
+            author={author}
+            url={url} />
+        </Togglable>
         <ul>
-          {blogs.map(blog =>
-            <Blog key={blog.id} blog={blog} />)}
+          {
+            blogs.map(blog =>
+              <Blog
+                key={blog.id}
+                blog={blog}
+                user={user}
+                removeBlog={removeBlog}
+              />)
+          }
         </ul>
       </>
     )
