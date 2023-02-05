@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 
 const App = () => {
@@ -9,9 +10,14 @@ const App = () => {
   const [user, setUser] = useState({})
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
+
+  const [msg, setMsg] = useState('')
+  const [color, setColor] = useState('')
+
 
   useEffect(() => {
     blogService.getAll()
@@ -39,9 +45,19 @@ const App = () => {
 
       setUser(loginUser)
       blogService.setToken(loginUser.token)
+      
       setUsername('')
       setPassword('')
-    } catch (excep) {
+    } catch (excep) {      
+      setColor('red')
+      setMsg('wrong username or password')
+      setTimeout(() => {
+        setMsg('')
+      }, 5000)
+
+      setUsername('')
+      setPassword('')
+
       console.error(excep.name)
     }
   }
@@ -71,6 +87,7 @@ const App = () => {
     </form>
   )
 
+
   const inputForBlog = (val, setVal) => (
     <>
       <input
@@ -82,17 +99,28 @@ const App = () => {
     </>
   )
 
+
   const handleCreateOne = async evt => {
     evt.preventDefault()
-    try { 
+    try {
       const newBlog = { title, author, url }
-      const res = await blogService.addBlog(newBlog)      
-      setBlogs(blogs.concat(res))
+      const savedBlog = await blogService.addBlog(newBlog)
+
+      setColor('green')
+      setMsg(`a new blog ${savedBlog.title} by ${savedBlog.author} added`)
+      setTimeout(() => {
+        setMsg('')
+      }, 3000)
+
+      setBlogs(blogs.concat(savedBlog))
       setTitle('')
       setAuthor('')
       setUrl('')
     } catch (exp) {
       console.error(exp.name)
+      setTitle('')
+      setAuthor('')
+      setUrl('')
     }
   }
 
@@ -125,6 +153,7 @@ const App = () => {
     return (
       <>
         <h2>Login in to the application</h2>
+        <Notification msg={msg} color={color} />
         {LoginForm()}
       </>
     )
@@ -132,7 +161,8 @@ const App = () => {
     return (
       <>
         <h2>Blogs</h2>
-        <p>{user.username} logged in 
+        <Notification msg={msg} color={color} />
+        <p>{user.username} logged in
           <button onClick={Handlelogout}>logout</button>
         </p>
         {CreateOneForm()}
