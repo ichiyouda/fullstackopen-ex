@@ -1,5 +1,5 @@
-import { useState } from "react"
-import blogService from "../services/blogs"
+import { useState } from 'react'
+import blogService from '../services/blogs'
 
 
 const blogStyle = {
@@ -46,7 +46,7 @@ const Blog = ({ blog, user, removeBlog }) => {
 
 
   const deleteBlog = async () => {
-    try {      
+    try {
       if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
         await blogService.deleteBlog(blog.id)
         removeBlog(blog.id)
