@@ -23,8 +23,10 @@ const Blog = ({ blog, user, handlelike, removeBlog }) => {
   const addLike = async () => {
     const savedBlog = await handlelike(blog, likes)
     setLikes(savedBlog.likes)
-  }
 
+    // test likeButton
+    // handlelike()
+  }
 
 
   const removeStyle = {
@@ -45,18 +47,30 @@ const Blog = ({ blog, user, handlelike, removeBlog }) => {
 
   return (
     <>
-      <div style={hideWhenVisible}>
-        {blog.title}  <button onClick={() => setVisible(!visible)}>view</button>
+      <div style={hideWhenVisible} className='view'>
+        {blog.title} {blog.author} <button
+          onClick={() => setVisible(!visible)}
+          className='viewButton'>
+          view
+        </button>
       </div>
-      <div style={showWhenVisible}>
+
+      <div style={showWhenVisible} className='hide'>
         <div>
-          {blog.title} <button onClick={() => setVisible(!visible)}>hide</button>
+          {blog.title} {blog.author}<button
+            onClick={() => setVisible(!visible)}>
+            hide
+          </button>
         </div>
         <div>
           <a href={blog.url}>{blog.url}</a>
         </div>
         <div>
-          likers: {likes} <button onClick={throttle(addLike, 800)}>like</button>
+          likers: {likes} <button
+            onClick={throttle(addLike, 500)}
+            className='likeButton'>
+            like
+          </button>
         </div>
         <div>
           {blog.author}

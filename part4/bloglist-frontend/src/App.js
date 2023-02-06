@@ -104,6 +104,15 @@ const App = () => {
   }
 
 
+  const relogin = exp => {
+    if (exp.response.data.error === 'Token is expired') {
+      setTimeout(() => {
+        setUser({})
+      }, 4000)
+    }
+  }
+
+
   blogs.sort((a, b) => b.likes - a.likes)
 
   if (!user.username) {
@@ -131,7 +140,8 @@ const App = () => {
           ref={blogFormRef}>
           <BlogForm
             createBlog={createBlog}
-            notify={notify} />
+            notify={notify}
+            relogin={relogin} />
         </Togglable>
         <ul id='blogs'>
           {blogs.map(blog =>

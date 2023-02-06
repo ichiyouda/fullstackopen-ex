@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 
-const inputForBlog = (val, setVal) => (
+const inputForBlog = (val, setVal, id) => (
   <input
+    id={id}
     type="text"
     value={val}
     name={val}
@@ -12,7 +13,8 @@ const inputForBlog = (val, setVal) => (
 
 const BlogForm = ({
   createBlog,
-  notify
+  notify,
+  relogin
 }) => {
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -26,11 +28,11 @@ const BlogForm = ({
       setAuthor('')
       setUrl('')
     } catch (exp) {
-      notify('red', `${exp.name}`, 6000)
-      // if jwt expired， auto jump to the login in from
+      notify('red', `${exp.message}`, 4000)
       setTitle('')
       setAuthor('')
       setUrl('')
+      relogin(exp)
     }
   }
 
@@ -39,18 +41,18 @@ const BlogForm = ({
       <div>
         <div>
           title:
-          {inputForBlog(title, setTitle)}
+          {inputForBlog(title, setTitle, 'title')}
         </div>
         <div>
           author:
-          {inputForBlog(author, setAuthor)}
+          {inputForBlog(author, setAuthor, 'author')}
         </div>
         <div>
           url:
-          {inputForBlog(url, setUrl)}
+          {inputForBlog(url, setUrl, 'url')}
         </div>
       </div>
-      <button type='submit'>create</button>
+      <button className='submit' type='submit'>create</button>
     </form>
   )
 }
@@ -58,6 +60,7 @@ const BlogForm = ({
 BlogForm.propTypes = {
   createBlog: PropTypes.func.isRequired,
   notify: PropTypes.func.isRequired,
+  relogin: PropTypes.func.isRequired
 }
 
 export default BlogForm
