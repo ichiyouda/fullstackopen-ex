@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import blogService from '../services/blogs'
 import throttle from '../utils/throttle'
 
 const blogStyle = {
@@ -14,7 +13,7 @@ const blogStyle = {
 }
 
 
-const Blog = ({ blog, user, removeBlog }) => {
+const Blog = ({ blog, user, handlelike, removeBlog }) => {
   const [visible, setVisible] = useState(false)
   const [likes, setLikes] = useState(blog.likes)
 
@@ -22,20 +21,11 @@ const Blog = ({ blog, user, removeBlog }) => {
   const showWhenVisible = { ...blogStyle, display: visible ? '' : 'none' }
 
   const addLike = async () => {
-    try {
-      const { id, title, author, url, user } = blog
-      const savedBlog = await blogService.updateBlog(id, {
-        title,
-        author,
-        url,
-        likes: likes + 1,
-        user: user.id
-      })
-      setLikes(savedBlog.likes)
-    } catch (exp) {
-      console.error(exp)
-    }
+    const savedBlog = await handlelike(blog, likes)
+    setLikes(savedBlog.likes)
   }
+
+
 
   const removeStyle = {
     display: blog.user.username !== user.username ? 'none' : '',
@@ -47,15 +37,11 @@ const Blog = ({ blog, user, removeBlog }) => {
 
 
   const deleteBlog = async () => {
-    try {
-      if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
-        await blogService.deleteBlog(blog.id)
-        removeBlog(blog.id)
-      }
-    } catch (err) {
-      console.error(err)
+    if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
+      await removeBlog(blog)
     }
   }
+
 
   return (
     <>
@@ -70,7 +56,7 @@ const Blog = ({ blog, user, removeBlog }) => {
           <a href={blog.url}>{blog.url}</a>
         </div>
         <div>
-          likers: {likes} <button onClick={throttle(addLike, 1200)}>like</button>
+          likers: {likes} <button onClick={throttle(addLike, 800)}>like</button>
         </div>
         <div>
           {blog.author}

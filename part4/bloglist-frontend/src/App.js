@@ -17,6 +17,14 @@ const App = () => {
   const [msg, setMsg] = useState('')
   const [color, setColor] = useState('')
 
+  const notify = (color, txt, times) => {
+    setColor(color)
+    setMsg(txt)
+    setTimeout(() => {
+      setMsg('')
+    }, times)
+  }
+
 
   useEffect(() => {
     blogService.getAll()
@@ -36,15 +44,6 @@ const App = () => {
   }, [])
 
 
-  const notify = (color, txt, times) => {
-    setColor(color)
-    setMsg(txt)
-    setTimeout(() => {
-      setMsg('')
-    }, times)
-  }
-
-
   const createLoginUser = async (username, password) => {
     const loginUser = await blogService.login({ username, password })
     window.localStorage.setItem('LoginedUser', JSON.stringify(loginUser))
@@ -57,6 +56,8 @@ const App = () => {
   const blogFormRef = useRef()
 
   const createBlog = async (title, author, url) => {
+    blogFormRef.current.toggleVisibility()
+
     const newBlog = { title, author, url }
     const savedBlog = await blogService.addBlog(newBlog)
 
@@ -66,19 +67,42 @@ const App = () => {
       3000)
 
     setBlogs(blogs.concat(savedBlog))
-    blogFormRef.current.toggleVisibility()
   }
 
 
-  const Handlelogout = () => {
+  const handlelogout = () => {
     setUser({})
     window.localStorage.clear()
   }
 
 
-  const removeBlog = id => {
-    setBlogs(blogs.filter(b => b.id !== id))
+  const removeBlog = async blog => {
+    try {
+      await blogService.deleteBlog(blog.id)
+      setBlogs(blogs.filter(b => b.id !== blog.id))
+    } catch (err) {
+      console.error(err)
+    }
   }
+
+
+  const handleBlogLikeButton = async (
+    { id, title, author, url, user },
+    likes) => {
+    try {
+      const savedBlog = await blogService.updateBlog(id, {
+        title,
+        author,
+        url,
+        likes: likes + 1,
+        user: user.id
+      })
+      return savedBlog
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
 
   blogs.sort((a, b) => b.likes - a.likes)
 
@@ -99,7 +123,7 @@ const App = () => {
         <h2>Blogs</h2>
         <Notification msg={msg} color={color} />
         <p>
-          {user.username} logged in <button onClick={Handlelogout}>logout</button>
+          {user.username} logged in <button onClick={handlelogout}>logout</button>
         </p>
         <Togglable
           openLabel='create new note'
@@ -115,6 +139,7 @@ const App = () => {
               key={blog.id}
               blog={blog}
               user={user}
+              handlelike={handleBlogLikeButton}
               removeBlog={removeBlog} />)}
         </ul>
       </>
