@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import PropTypes from 'prop-types'
 
 const inputForBlog = (val, setVal) => (
@@ -10,14 +11,29 @@ const inputForBlog = (val, setVal) => (
 )
 
 const BlogForm = ({
-  handleSubmit,
-  setTitle,
-  setAuthor,
-  setUrl,
-  title,
-  author,
-  url
+  createBlog,
+  notify
 }) => {
+  const [title, setTitle] = useState('')
+  const [author, setAuthor] = useState('')
+  const [url, setUrl] = useState('')
+
+  const handleSubmit = async evt => {
+    evt.preventDefault()
+    try {
+      await createBlog(title, author, url)
+      setTitle('')
+      setAuthor('')
+      setUrl('')
+    } catch (exp) {
+      notify('red', `${exp.name}`, 6000)
+      // if jwt expired， auto jump to the login in from
+      setTitle('')
+      setAuthor('')
+      setUrl('')
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <div>
@@ -40,13 +56,8 @@ const BlogForm = ({
 }
 
 BlogForm.propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
-  setTitle: PropTypes.func.isRequired,
-  setAuthor: PropTypes.func.isRequired,
-  setUrl: PropTypes.func.isRequired,
-  title: PropTypes.string.isRequired,
-  author: PropTypes.string.isRequired,
-  url: PropTypes.string.isRequired
+  createBlog: PropTypes.func.isRequired,
+  notify: PropTypes.func.isRequired,
 }
 
 export default BlogForm

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import blogService from '../services/blogs'
-
+import throttle from '../utils/throttle'
 
 const blogStyle = {
   paddingTop: 10,
@@ -9,7 +9,8 @@ const blogStyle = {
   borderWidth: 2,
   borderRadius: 2,
   borderColor: 'green',
-  marginBottom: 5
+  marginBottom: 5,
+  maxWidth: '40%'
 }
 
 
@@ -69,7 +70,7 @@ const Blog = ({ blog, user, removeBlog }) => {
           <a href={blog.url}>{blog.url}</a>
         </div>
         <div>
-          likers: {likes} <button onClick={addLike}>like</button>
+          likers: {likes} <button onClick={throttle(addLike, 1200)}>like</button>
         </div>
         <div>
           {blog.author}

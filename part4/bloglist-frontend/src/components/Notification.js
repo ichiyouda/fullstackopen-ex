@@ -1,4 +1,5 @@
 const Notification = ({ msg, color }) => {
+
   const defaultStyle = {
     padding: '1em',
     marginBottom: '1em',
