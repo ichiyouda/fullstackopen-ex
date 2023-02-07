@@ -5,7 +5,7 @@ const User = require('../models/user')
 
 blogRoute.get('/', async (_request, res) => {
   const blogs = await Blog.find({}).populate('user', { blogs: 0 })
-  console.log(`blogs ${blogs.length}`)
+  // console.log(`the sum of blogs : ${blogs.length}`)
   res.json(blogs)
 })
 
@@ -26,11 +26,12 @@ blogRoute.post('/', async (req, res) => {
         req.body = { ...req.body, likes: 0 }
       }
 
-      // if can't find the user ?
+      // if can't find the user
       const user = await User.findById(userId)
       if (!user) {
         res.status(404).send({ error: 'user can\'t find' })
       } else {
+        // update blog
         const blog = new Blog({ ...req.body, user: user._id })
         const savedBlog = await blog.save()
 
@@ -42,7 +43,6 @@ blogRoute.post('/', async (req, res) => {
       }
     }
   }
-
 })
 
 
@@ -65,9 +65,21 @@ blogRoute.delete('/:id', async (req, res) => {
 
 
 blogRoute.put('/:id', async (req, res) => {
+  // const userId = req.user
+  // if (!userId) {
+  //   res.status(401).send({ error: 'invalid token' })
+  // } else {
+  //   const blog = await Blog.findById(req.params.id)
+  //   if (!blog) {
+  //     res.status(204).end()
+  //   } else if (userId !== blog.user.toString()) {
+  //     res.status(401).send({ error: 'invalid user' })
+  //   } else {
   const updatedB = await Blog.findByIdAndUpdate(req.params.id, req.body, { new: true })
   res.json(updatedB)
-
+  // }
+  // }
 })
+
 
 module.exports = blogRoute

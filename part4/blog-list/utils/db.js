@@ -18,28 +18,6 @@ mongoose.connect(mongoUrl)
   })
 
 
-// Blog.deleteMany()
-//   .then(() => {
-//     logger.info('succeed to delete all blogs')
-//   })
-//   .catch(err => {
-//     logger.error('error connecting to MongoDb', err.message)
-//   })
-
-//   User.deleteMany()
-//   .then(() => {
-//     logger.info('succeed to delete all User')
-//   })
-//   .catch(err => {
-//     logger.error('error connecting to MongoDb', err.message)
-//   })
-
-
-//   setTimeout(() => {
-//     mongoose.connection.close()
-//     logger.info('close db collection')
-//   }, 5000)
-
 const deleteAll = async () => {
   await Blog.deleteMany()
   logger.info('succeed to delete all blogs')

@@ -20,10 +20,12 @@ const userExtractor = (req, _res, next) => {
   next()
 }
 
+
 const requestLogger = (req, _res, next) => {
-  logger.info(`${req.method} ${req.path}`)
+  logger.info(`${req.method} ${req.path} - ${Date().slice(16, 24) }`)
   next()
 }
+
 
 const unknownEndpoint = (_req, res) => {
   return res.status(404).send({ error: 'unkonwn Endpoint' })
@@ -46,5 +48,6 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 
 }
+
 
 module.exports = { unknownEndpoint, requestLogger, errorHandler, userExtractor }
