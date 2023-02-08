@@ -1,12 +1,18 @@
 import { useSelector, useDispatch } from 'react-redux'
 import { vote } from "../reducers/anecdoteReducer"
+import { notify } from '../reducers/notifyReducer'
 
 const AnecdoteList = () => {
-  const { anecdotes, filter } = useSelector(state => state)
+  const { anecdotes, filter } = useSelector(state => state)  
   const dispatch = useDispatch()
 
-  const handlevote = id => {
-    dispatch(vote(id))
+  const handlevote = anec => {
+    dispatch(vote(anec.id))
+    dispatch(notify(anec.content))
+    setTimeout(() => {
+      dispatch(notify(''))
+    }, 5000)
+
   }
 
   const listSty = {
@@ -29,7 +35,7 @@ const AnecdoteList = () => {
             </div>
             <div>
               has {anecdote.votes}
-              <button onClick={() => handlevote(anecdote.id)}>vote</button>
+              <button onClick={() => handlevote(anecdote)}>vote</button>
             </div>
           </li>)
         } else {
