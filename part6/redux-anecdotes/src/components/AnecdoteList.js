@@ -1,27 +1,22 @@
 import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 
-import anecService from '../service/anecdotes'
-import { vote, setAnec } from "../reducers/anecdoteReducer"
-import { notify } from '../reducers/notifyReducer'
+import { updateVote, initAnecdotes } from "../reducers/anecdoteReducer"
+import { setNotification } from '../reducers/notifyReducer'
 
 const AnecdoteList = () => {
   const { anecdotes, filter } = useSelector(state => state)
   const dispatch = useDispatch()
 
+
   useEffect(() => {
-    anecService.getAll()
-      .then(anecs => dispatch(setAnec(anecs)))
+    dispatch(initAnecdotes())
   }, [dispatch])
 
-  
-  const handlevote = anec => {
-    dispatch(vote(anec.id))
-    dispatch(notify(anec.content))
-    setTimeout(() => {
-      dispatch(notify(''))
-    }, 5000)
 
+  const handlevote = anec => {
+    dispatch(updateVote(anec.id))
+    dispatch(setNotification(anec.content, 5))
   }
 
   const listSty = {
