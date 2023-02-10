@@ -1,26 +1,53 @@
 import { useState } from 'react'
+import {
+  Link,
+  Routes,
+  Route,
+  useNavigate,
+  useMatch
+} from 'react-router-dom'
 
 const Menu = () => {
   const padding = {
-    paddingRight: 5
+    paddingRight: 6
   }
   return (
     <div>
-      <a href='#' style={padding}>anecdotes</a>
-      <a href='#' style={padding}>create new</a>
-      <a href='#' style={padding}>about</a>
+      <Link style={padding} to="/">anecdotes</Link>
+      <Link style={padding} to="/create">create new</Link>
+      <Link style={padding} to="/about">about</Link>
     </div>
   )
 }
 
-const AnecdoteList = ({ anecdotes }) => (
-  <div>
-    <h2>Anecdotes</h2>
-    <ul>
-      {anecdotes.map(anecdote => <li key={anecdote.id} >{anecdote.content}</li>)}
-    </ul>
-  </div>
-)
+
+const Anecdote = ({ anecdote }) => {
+  return (
+    <>
+      <h2>
+        {anecdote.content}
+      </h2>
+      has {anecdote.votes} votes
+    </>
+  )
+}
+
+const AnecdoteList = ({ anecdotes }) => {
+  return (
+    <div>
+      <h2>Anecdotes</h2>
+      <ul>
+        {anecdotes.map(anecdote =>
+          <li key={anecdote.id}>
+            <Link
+              to={`/anecdotes/${anecdote.id}`}>
+              {anecdote.content}
+            </Link>
+          </li>)}
+      </ul>
+    </div>
+  )
+}
 
 const About = () => (
   <div>
@@ -36,13 +63,7 @@ const About = () => (
   </div>
 )
 
-const Footer = () => (
-  <div>
-    Anecdote app for <a href='https://fullstackopen.com/'>Full Stack Open</a>.
 
-    See <a href='https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js'>https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js</a> for the source code.
-  </div>
-)
 
 const CreateNew = (props) => {
   const [content, setContent] = useState('')
@@ -74,7 +95,7 @@ const CreateNew = (props) => {
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e)=> setInfo(e.target.value)} />
+          <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
         </div>
         <button>create</button>
       </form>
@@ -82,6 +103,27 @@ const CreateNew = (props) => {
   )
 
 }
+
+// outsiede the routes
+
+const Notification = ({ msg }) => {
+  if (msg === '') {
+    return null
+  } else {
+    return (
+      <p>a new anecdote {msg} created!</p>
+    )
+  }
+}
+
+
+const Footer = () => (
+  <div>
+    Anecdote app for <a href='https://fullstackopen.com/'>Full Stack Open</a>.
+
+    See <a href='https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js'>https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js</a> for the source code.
+  </div>
+)
 
 const App = () => {
   const [anecdotes, setAnecdotes] = useState([
@@ -103,13 +145,29 @@ const App = () => {
 
   const [notification, setNotification] = useState('')
 
+  const notify = (msg, sed) => {
+    setNotification(msg)
+    setTimeout(() => {
+      setNotification('')
+    }, sed * 1000);
+  }
+
+  const navigate = useNavigate()
   const addNew = (anecdote) => {
     anecdote.id = Math.round(Math.random() * 10000)
     setAnecdotes(anecdotes.concat(anecdote))
+    navigate('/')
+    notify(anecdote.content, 4)
   }
 
-  const anecdoteById = (id) =>
-    anecdotes.find(a => a.id === id)
+
+  const anecdoteById = (id) => anecdotes.find(a => a.id === id)
+
+  const match = useMatch('/anecdotes/:id')
+  const anecdote = match
+    ? anecdoteById(Number(match.params.id))
+    : null
+
 
   const vote = (id) => {
     const anecdote = anecdoteById(id)
@@ -126,9 +184,17 @@ const App = () => {
     <div>
       <h1>Software anecdotes</h1>
       <Menu />
-      <AnecdoteList anecdotes={anecdotes} />
+      <Notification msg={notification} />
+      <Routes>
+        <Route path='/anecdotes/:id' element={<Anecdote anecdote={anecdote} />} />
+        <Route path='/' element={<AnecdoteList anecdotes={anecdotes} />} />
+        <Route path='/create' element={<CreateNew addNew={addNew} />} />
+        <Route path='/about' element={<About />} />
+      </Routes>
+
+      {/* <AnecdoteList anecdotes={anecdotes} />
       <About />
-      <CreateNew addNew={addNew} />
+      <CreateNew addNew={addNew} /> */}
       <Footer />
     </div>
   )
