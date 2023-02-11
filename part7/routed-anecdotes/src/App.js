@@ -7,6 +7,8 @@ import {
   useMatch
 } from 'react-router-dom'
 
+import { useField } from './hooks'
+
 const Menu = () => {
   const padding = {
     paddingRight: 6
@@ -66,19 +68,25 @@ const About = () => (
 
 
 const CreateNew = (props) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
+  const [resetContent, content] = useField('text', 'content')
+  const [resetAuthor, author] = useField('text', 'author')
+  const [resetInfo, info] = useField('text', 'info')
 
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = (evt) => {
+    evt.preventDefault()
+    console.log(evt.target.reset)
     props.addNew({
-      content,
-      author,
-      info,
+      content: content.value,
+      author: author.value,
+      info: info.value,
       votes: 0
     })
+  }
+
+  const reset = () => {
+    resetAuthor()
+    resetContent()
+    resetInfo()
   }
 
   return (
@@ -87,24 +95,25 @@ const CreateNew = (props) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input {...content} />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input {...author} />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+          <input {...info} />
         </div>
         <button>create</button>
+        <input type="reset" onClick={reset} />
       </form>
-    </div>
+      <br />
+    </div >
   )
 
 }
 
-// outsiede the routes
 
 const Notification = ({ msg }) => {
   if (msg === '') {
@@ -191,10 +200,6 @@ const App = () => {
         <Route path='/create' element={<CreateNew addNew={addNew} />} />
         <Route path='/about' element={<About />} />
       </Routes>
-
-      {/* <AnecdoteList anecdotes={anecdotes} />
-      <About />
-      <CreateNew addNew={addNew} /> */}
       <Footer />
     </div>
   )
