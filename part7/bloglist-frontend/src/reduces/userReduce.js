@@ -51,4 +51,9 @@ export const logout = () => {
   }
 }
 
+export const getUsers = async () => {
+  const users = await blogService.getAllUser()
+  return users
+}
+
 export default userSlice.reducer

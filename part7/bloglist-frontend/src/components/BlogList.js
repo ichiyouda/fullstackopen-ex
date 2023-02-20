@@ -1,11 +1,21 @@
-import { useSelector, useDispatch } from 'react-redux'
+import { Link } from 'react-router-dom'
 import { useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 
-import Blog from './Blog'
 import { initBlogList } from '../reduces/blogListReduce'
 
+const blogStyle = {
+  padding: 10,
+  marginBottom: 8,
+  border: 'solid',
+  borderWidth: 2,
+  borderRadius: 2,
+  borderColor: 'green',
+  maxWidth: '60%',
+}
+
 const BlogList = () => {
-  const { blogs, user } = useSelector((state) => state)
+  const { blogs } = useSelector((state) => state)
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -13,13 +23,13 @@ const BlogList = () => {
   }, [])
 
   return (
-    <>
-      <ul id="blogs">
-        {blogs.map((blog) => (
-          <Blog key={blog.id} blog={blog} user={user} />
-        ))}
-      </ul>
-    </>
+    <ul>
+      {blogs.map((blog) => (
+        <li key={blog.id} style={blogStyle}>
+          <Link to={`/blogs/${blog.id}`}>{blog.title}</Link>
+        </li>
+      ))}
+    </ul>
   )
 }
 

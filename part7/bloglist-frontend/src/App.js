@@ -1,26 +1,25 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { Routes, Route } from 'react-router-dom'
 
 import LoginForm from './components/LoginForm'
-import BlogForm from './components/BlogFrom'
-import BlogList from './components/BlogList'
 import Notification from './components/Notification'
-import Togglable from './components/Togglable'
 
-import { detectLoggined, logout } from './reduces/userReduce'
+import Nav from './views/Nav'
+import Users from './views/Users'
+import User from './views/User'
+import Blogs from './views/Blogs'
+import Blog from './views/Blog'
+
+import { detectLoggined } from './reduces/userReduce'
 
 const App = () => {
-  console.log('hello again, React')
-
   const { user } = useSelector((s) => s)
   const dispatch = useDispatch()
 
   useEffect(() => {
     dispatch(detectLoggined())
   }, [])
-
-  // 原本是要傳入<BlogForm />
-  const blogFormRef = useRef()
 
   if (!user.username) {
     return (
@@ -33,20 +32,16 @@ const App = () => {
   } else {
     return (
       <>
-        <h2>Blogs</h2>
+        <Nav />
         <Notification />
-        <p>
-          {user.username} logged in
-          <button onClick={() => dispatch(logout())}>logout</button>
-        </p>
-        <Togglable
-          openLabel="create new note"
-          closeLabel="cancel"
-          ref={blogFormRef}
-        >
-          <BlogForm />
-        </Togglable>
-        <BlogList user={user} />
+        <h2>blog app</h2>
+        <Routes>
+          <Route path="/" element={<Blogs />} />
+
+          <Route path="/users" element={<Users />} />
+          <Route path="/users/:id" element={<User />} />
+          <Route path="/blogs/:id" element={<Blog />} />
+        </Routes>
       </>
     )
   }

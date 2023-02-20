@@ -8,7 +8,7 @@ const blogListSlice = createSlice({
   name: 'blogList',
   initialState,
   reducers: {
-    setBlogList(state, action) {
+    setBlogs(state, action) {
       state = action.payload
       state.sort((a, b) => a.likes < b.likes)
       return state
@@ -27,12 +27,12 @@ const blogListSlice = createSlice({
   },
 })
 
-const { setBlogList, addBlog, deleteBlog, addLike } = blogListSlice.actions
+const { setBlogs, addBlog, deleteBlog, addLike } = blogListSlice.actions
 
 export const initBlogList = () => {
   return async (dispatch) => {
     const blogs = await blogService.getAll()
-    dispatch(setBlogList(blogs))
+    dispatch(setBlogs(blogs))
   }
 }
 
