@@ -16,11 +16,12 @@ const { setNotify } = notifySlice.actions
 
 export const notify = (color, msg, times) => {
   return (dispatch) => {
-    console.log({ msg, color })
     dispatch(setNotify({ msg, color }))
-    setTimeout(() => {
-      dispatch(setNotify(initialState))
-    }, times)
+    if (times) {
+      setTimeout(() => {
+        dispatch(setNotify(initialState))
+      }, times)
+    }
   }
 }
 

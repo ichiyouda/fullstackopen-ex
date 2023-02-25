@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 import blogService from '../services/blogs'
-import { notify } from '../reduces/notifyReduce'
+import { notify } from './notifyReduce'
 
 const initialState = {}
 
@@ -19,25 +19,29 @@ const { setUser } = userSlice.actions
 
 export const login = (username, password) => {
   return async (dispatch) => {
+    let loginUser
     try {
-      const loginUser = await blogService.login({ username, password })
-      window.localStorage.setItem('LoginedUser', JSON.stringify(loginUser))
-      blogService.setToken(loginUser.token)
-      dispatch(setUser(loginUser))
-    } catch (error) {
-      console.error(error.response.data.error)
-      dispatch(notify('red', 'wrong username or password', 5000))
+      loginUser = await blogService.login({ username, password })
+    } catch (err) {
+      if (err.response.status === 401) {
+        dispatch(notify('red', 'Wrong username or password', 5000))
+        throw err.message
+      }
     }
+    window.localStorage.setItem('LoginedUser', JSON.stringify(loginUser))
+    blogService.setToken(loginUser.token)
+    dispatch(setUser(loginUser))
   }
 }
 
 export const detectLoggined = () => {
   return (dispatch) => {
     const useStr = window.localStorage.getItem('LoginedUser')
-    if (useStr !== 'undefined') {
+    if (useStr !== null) {
       const user = JSON.parse(useStr)
-      dispatch(setUser(user))
       blogService.setToken(user.token)
+      // todo: verify token
+      dispatch(setUser(user))
     } else {
       console.log('localStorage has no value for key of loginedUser')
     }

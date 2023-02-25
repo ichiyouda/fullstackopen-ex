@@ -13,8 +13,9 @@ const BlogView = () => {
   if (!theBlog) {
     dispatch(initBlogList())
     return null
+  } else {
+    return <Blog blog={theBlog} user={user} />
   }
-  return <Blog blog={theBlog} user={user} />
 }
 
 export default BlogView

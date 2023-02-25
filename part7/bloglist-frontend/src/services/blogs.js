@@ -38,6 +38,17 @@ const deleteBy = async (id) => {
   await axios.delete(`${baseUrl}/${id}`, config)
 }
 
+/**
+ *
+ * @param {String} id
+ * @param {String} content
+ * @returns Array
+ */
+const addCommentWithBlog = async (id, content) => {
+  const res = await axios.post(`${baseUrl}/${id}/comments`, { content })
+  return res.data
+}
+
 export default {
   getAll,
   login,
@@ -46,4 +57,5 @@ export default {
   update,
   deleteBy,
   getAllUser,
+  addCommentWithBlog,
 }

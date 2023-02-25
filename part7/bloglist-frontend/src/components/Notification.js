@@ -4,6 +4,8 @@ const Notification = () => {
   const { msg, color } = useSelector(({ notify }) => notify)
 
   const defaultStyle = {
+    position: 'sticky',
+    top: 10,
     padding: '1em',
     marginBottom: '1em',
 

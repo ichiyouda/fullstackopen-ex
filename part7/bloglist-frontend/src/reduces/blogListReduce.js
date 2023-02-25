@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 
 import blogService from '../services/blogs'
+import { notify } from './notifyReduce'
 
 const initialState = []
 
@@ -24,15 +25,28 @@ const blogListSlice = createSlice({
         blog.id !== action.payload ? blog : { ...blog, likes: blog.likes + 1 }
       )
     },
+    updateBlogCommentsById(state, action) {
+      return state.map((b) =>
+        b.id === action.payload.id
+          ? { ...b, comments: action.payload.comments }
+          : b
+      )
+    },
   },
 })
 
-const { setBlogs, addBlog, deleteBlog, addLike } = blogListSlice.actions
+const { setBlogs, addBlog, deleteBlog, addLike, updateBlogCommentsById } =
+  blogListSlice.actions
 
 export const initBlogList = () => {
   return async (dispatch) => {
-    const blogs = await blogService.getAll()
-    dispatch(setBlogs(blogs))
+    try {
+      const blogs = await blogService.getAll()
+      dispatch(setBlogs(blogs))
+    } catch (err) {
+      dispatch(notify('red', err.message))
+      console.error(err.name, err.message)
+    }
   }
 }
 
@@ -68,6 +82,13 @@ export const handleBlogLike = ({ id, title, author, url, user, likes }) => {
     } catch (err) {
       console.error(err)
     }
+  }
+}
+
+export const addComment = (id, content) => {
+  return async (dispatch) => {
+    const savedComments = await blogService.addCommentWithBlog(id, content)
+    dispatch(updateBlogCommentsById({ id, comments: savedComments }))
   }
 }
 
