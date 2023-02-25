@@ -4,30 +4,29 @@ const uniqueValidator = require('mongoose-unique-validator')
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    require: true,
+    required: true,
     unique: true,
     validate: {
-      validator: v => {
+      validator: (v) => {
         return /^[A-Za-z0-9]{3,}$/.test(v)
       },
-      message: props => `${props.value} is not a valid usename!`
-    }
+      message: (props) => `${props.value} is not a valid usename!`,
+    },
   },
   passwordHash: {
     type: String,
-    require: true
+    required: true,
   },
   name: {
-    type: String
+    type: String,
   },
   blogs: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Blog'
-    }
-  ]
+      ref: 'Blog',
+    },
+  ],
 })
-
 
 userSchema.set('toJSON', {
   transform: (document, returnedObject) => {
@@ -36,9 +35,8 @@ userSchema.set('toJSON', {
     delete returnedObject._id
     delete returnedObject.__v
     delete returnedObject.passwordHash
-  }
+  },
 })
-
 
 mongoose.plugin(uniqueValidator)
 module.exports = mongoose.model('User', userSchema)
