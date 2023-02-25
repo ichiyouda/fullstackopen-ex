@@ -1,4 +1,5 @@
-console.log("hello express");
+/* eslint-disable indent */
+console.log('hello express!')
 
 require('dotenv').config()
 const express = require('express')
@@ -29,7 +30,6 @@ app.use(express.static('build'))
 app.use(express.json())
 
 
-// ------------ restAPI -------------
 
 /* get all persons */
 app.get('/api/persons', (req, res) => {
@@ -41,7 +41,7 @@ app.get('/api/persons', (req, res) => {
 
 
 /* info */
-app.get('/info', (req, res) => {
+app.get('/info', (_req, res) => {
     Person.find({})
         .then(returnedP => {
             const info = `
@@ -53,26 +53,24 @@ app.get('/info', (req, res) => {
 
 
 /* get specified person */
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
     Person.findById(req.params.id)
         .then(person => {
             if (person) {
                 res.json(person)
             } else {
+                console.log(`person ${person}`)
                 res.status(404).end()
             }
         })
-        .catch(error => {
-            console.log(error)
-            response.status(400).send({ error: 'malformatted id' })
-        })
+        .catch(error => next(error))
 })
 
 
 /* delete specified person */
 app.delete('/api/persons/:id', (req, res, next) => {
     Person.findByIdAndRemove(req.params.id)
-        .then(result => {
+        .then(() => {
             res.status(204).end()
         })
         .catch(err => next(err))
@@ -99,7 +97,7 @@ app.post('/api/persons', (req, res, next) => {
 
 
 /* update a person */
-app.put('/api/persons/:id', (req, res, k) => {
+app.put('/api/persons/:id', (req, res, next) => {
     const { name, number } = req.body
     Person.findByIdAndUpdate(
         req.params.id,
@@ -109,7 +107,7 @@ app.put('/api/persons/:id', (req, res, k) => {
         .then(updatedP => {
             res.json(updatedP)
         })
-        .catch(error => k(error))
+        .catch(error => next(error))
 })
 
 
@@ -121,6 +119,7 @@ app.use(unknownEndpoint)
 
 
 // --------------- Port -----------------
+// eslint-disable-next-line no-undef
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
@@ -128,7 +127,7 @@ app.listen(PORT, () => {
 
 
 // ---------------- error handle ---------------
-const errorHandler = (error, request, response, next) => {
+const errorHandler = (error, _request, response, next) => {
     console.error(error.message)
 
     if (error.name === 'CastError') {
@@ -141,4 +140,4 @@ const errorHandler = (error, request, response, next) => {
 }
 
 // this has to be the last loaded middleware.
-app.use(errorHandler) 
+app.use(errorHandler)

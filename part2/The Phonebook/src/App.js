@@ -1,16 +1,34 @@
 import { useState, useEffect } from 'react'
 import personService from './services/person.js'
-import { nanoid } from 'nanoid'
 
-const Notification = ({msg, style}) => {
+const Notification = ({ msg }) => {
   if (msg === '') {
     return null
   } else {
-    return (
-      <div style={style}>
-        {msg}
-      </div>
-    )
+    const style = {
+      padding: '1em',
+      marginBottom: '1em',
+
+      borderStyle: 'solid',
+      borderRadius: 10,
+      borderWidth: 3,
+
+      backgroundColor: '#d3d3d3',
+      fontSize: 16
+    }
+    if (msg.includes('Added') || msg.includes('Updated')) {
+      return (
+        <div style={{ ...style, borderColor: 'green', color: 'green' }}>
+          {msg}
+        </div>
+      )
+    } else {
+      return (
+        <div style={{ ...style, borderColor: 'red', color: 'red' }}>
+          {msg}
+        </div>
+      )
+    }
   }
 }
 
@@ -27,7 +45,7 @@ const Input = ({ val, handle }) => {
 const Filter = ({ val, handle }) => {
   return (
     <>
-      filter shown with<Input val={val} handle={handle} />
+      filter shown with <Input val={val} handle={handle} />
     </>
   )
 }
@@ -53,6 +71,7 @@ const PersonForm = ({ formHandle, val1, val2, handle1, handle2 }) => {
 const Person = ({ persons, filter, setPersons }) => {
   const remove = p => {
     if (window.confirm(`delete ${p.name}`)) {
+      console.log(`delete ${p.name}`)
       personService.remove(p.id)
       personService.getAll()
         .then(returnedPersons => setPersons(returnedPersons))
@@ -72,81 +91,64 @@ const Person = ({ persons, filter, setPersons }) => {
 
 
 const App = () => {
-  console.log("refresh app!");
   const [persons, setPersons] = useState([])
   const [filter, setFilter] = useState('')
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
-  const [style, setStyle] = useState({
-    padding: '1em',      
-    marginBottom: '1em',
-
-    borderStyle: 'solid',
-    borderRadius: 10,
-    borderWidth: 3,
-
-    backgroundColor: '#d3d3d3',
-    fontSize: 16
-  })
   const [notificationMsg, setNotificationMsg] = useState('')
 
   useEffect(() => {
-    console.log('get data from server');
     personService.getAll()
       .then(returnedPersons => setPersons(returnedPersons))
   }, [])
 
-
   const addPerson = evt => {
     evt.preventDefault()
-    if (newName === '') {
-      alert('please check your name')
-    }
-    else if (newNumber === '') {
-      alert('please check your number')
-    }
-    else {
-      const findedPerson = persons.find(p => p.name === newName)
-      if (findedPerson === undefined) {
-        const newOne = { name: newName, number: newNumber, id: nanoid() }
+    const findedPerson = persons.find(p => p.name === newName)
+    if (!findedPerson) {
+      const newOne = { name: newName, number: newNumber }
+      personService
+        .create(newOne)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNotificationMsg(`Added ${returnedPerson.name}`)
+          setTimeout(() => {
+            setNotificationMsg('')
+          }, 3000);
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch(err => {
+          setNewName('')
+          setNewNumber('')
+          setNotificationMsg(err.response.data.error)
+          setTimeout(() => {
+            setNotificationMsg('')
+          }, 5000);
+        })
+    } else {
+      if (window.confirm(`${newName} is already added to phonebook, replace old number with a new one?`)) {
+        const newOne = { ...findedPerson, number: newNumber }
         personService
-          .create(newOne)
+          .update(newOne.id, newOne)
           .then(returnedPerson => {
-            console.log('add a new one to Phonebook')
-            setPersons(persons.concat(returnedPerson))
-            setStyle({...style, borderColor: 'green', color: 'green'})
-            setNotificationMsg(`Added ${returnedPerson.name}`)
+            setPersons(persons.map(p => p.id !== returnedPerson.id ? p : returnedPerson))
+            setNotificationMsg(`Updated ${returnedPerson.name}`)
             setTimeout(() => {
               setNotificationMsg('')
+            }, 3000);
+            setNewName('')
+            setNewNumber('')
+          })
+          .catch(error => {
+            setNotificationMsg(`Information of ${newName} has alread been removed from server`)
+            setTimeout(() => {
+              setNotificationMsg('')
+              setPersons(persons.filter(p => p.name !== newName))
             }, 5000);
             setNewName('')
             setNewNumber('')
           })
-        } else {
-          if (window.confirm(`${newName} is already added to phonebook, replace old number with a new one?`)) {
-            const newOne = { ...findedPerson, number: newNumber }
-            personService
-            .update(newOne.id, newOne)
-            .then(returnedPerson => {
-              console.log('update a old number')
-              setPersons(persons.map(p => p.id !== returnedPerson.id ? p : returnedPerson))
-              setStyle({...style, borderColor: 'green', color: 'green'})
-              setNotificationMsg(`Updated ${returnedPerson.name}`)
-              setTimeout(() => {
-                setNotificationMsg('')
-              }, 5000);
-              setNewName('')
-              setNewNumber('')
-            })
-            .catch(error => {
-              setStyle({...style, borderColor: 'red', color: 'red'})
-              setNotificationMsg(`Information of ${newName} has alread been removed from server`)
-              setTimeout(() => {
-                setNotificationMsg('')
-                setPersons(persons.filter(p => p.name !== newName))
-              }, 3000);         
-            })
-        }
       }
     }
   }
@@ -155,9 +157,9 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification msg={notificationMsg} style={style}/>
+      <Notification msg={notificationMsg} />
       <Filter val={filter} handle={setFilter} />
-      <h2>add a new</h2>
+      <h2>Add a new</h2>
       <PersonForm
         formHandle={addPerson}
         val1={newName}
@@ -166,9 +168,13 @@ const App = () => {
         handle2={setNewNumber}
       />
       <h2>Numbers</h2>
-      <Person filter={filter} persons={persons} setPersons={setPersons} />
+      <Person
+        filter={filter}
+        persons={persons}
+        setPersons={setPersons} />
     </div>
   )
 }
+
 
 export default App
