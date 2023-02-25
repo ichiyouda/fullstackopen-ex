@@ -1,9 +1,18 @@
 import { useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { handleBlogLike, removeBy, addComment } from '../reduces/blogListReduce'
+import styled from 'styled-components'
 
 import throttle from '../utils/throttle'
 
+const Button = styled.button`
+  display: ${(props) => (props.isUser ? '' : 'none')};
+  font-weight: bold;
+  margin-top: 0.5em;
+  border: 2px solid lightblue;
+  border-radius: 2px;
+  background-color: lightblue;
+`
 const Blog = ({ blog, user }) => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -11,7 +20,6 @@ const Blog = ({ blog, user }) => {
   const removeBlog = () => {
     if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
       dispatch(removeBy(blog.id))
-      console.log('2')
       navigate('/')
     } else {
       console.log('cancel remove')
@@ -20,14 +28,6 @@ const Blog = ({ blog, user }) => {
 
   const addlike = () => {
     dispatch(handleBlogLike(blog))
-  }
-
-  const removeStyle = {
-    display: blog.user.username !== user.username ? 'none' : '',
-    backgroundColor: 'lightblue',
-    borderColor: 'lightblue',
-    fontWeight: 'bold',
-    borderRadius: 2,
   }
 
   const Comments = () => {
@@ -65,9 +65,12 @@ const Blog = ({ blog, user }) => {
       </div>
       <div>added by {blog.author}</div>
       <div>
-        <button style={removeStyle} onClick={removeBlog}>
+        <Button
+          isUser={blog.user.username === user.username}
+          onClick={removeBlog}
+        >
           remove
-        </button>
+        </Button>
       </div>
       <div>
         <h3>Comments</h3>
