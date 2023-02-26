@@ -42,11 +42,8 @@ const errorHandler = (error, request, response, next) => {
     return response.status(400).send({ error: 'token missing or invalid' })
   } else if (error.name === 'TokenExpiredError') {
     return response.status(400).send({ error: 'Token is expired' })
-  } else {
-    // return response.status(500).end()
-    response.status(500).end()
-    next(error)
   }
+  next(error)
 }
 
 module.exports = { unknownEndpoint, requestLogger, errorHandler, userExtractor }

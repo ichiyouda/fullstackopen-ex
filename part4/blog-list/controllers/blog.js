@@ -15,8 +15,7 @@ blogRoute.post('/', async (req, res) => {
   } else {
     const user = await User.findById(userId)
     if (!user) {
-      // eslint-disable-next-line quotes
-      res.status(404).send({ error: "user can't find" })
+      res.status(404).send({ error: 'user can`t find' })
     } else {
       const blog = new Blog({
         ...req.body,

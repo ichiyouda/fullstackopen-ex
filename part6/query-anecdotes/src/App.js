@@ -30,19 +30,19 @@ const App = () => {
   })
 
   const handleVote = (anecdote) => {
+    updateMutation.mutate({ ...anecdote, votes: anecdote.votes + 1 })
     notifyDispatch({
       type: 'setNMsg',
       payload: `anecdote ${anecdote.content} voted`,
     })
-    updateMutation.mutate({ ...anecdote, votes: anecdote.votes + 1 })
   }
 
   const addA = (anecdote) => {
+    newAMutation.mutate(anecdote)
     notifyDispatch({
       type: 'setNMsg',
       payload: `anecdote ${anecdote.content} created`,
     })
-    newAMutation.mutate(anecdote)
   }
 
   const { isLoading, isError, data, error } = useQuery('anecs', getAll, {
