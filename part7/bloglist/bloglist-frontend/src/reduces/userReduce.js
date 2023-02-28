@@ -1,11 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-import blogService from '../services/blogs'
+import loginService from '../services/login'
+import usersService from '../services/users'
+import userService from '../services/user'
+import storageService from '../services/storage'
 import { notify } from './notifyReduce'
 
 const initialState = {}
 
-const userSlice = createSlice({
+const slice = createSlice({
   name: 'user',
   initialState,
   reducers: {
@@ -15,35 +18,35 @@ const userSlice = createSlice({
   },
 })
 
-const { setUser } = userSlice.actions
+const { setUser } = slice.actions
 
 export const login = (username, password) => {
   return async (dispatch) => {
     let loginUser
     try {
-      loginUser = await blogService.login({ username, password })
+      loginUser = await loginService.login({ username, password })
     } catch (err) {
       if (err.response.status === 401) {
         dispatch(notify('red', 'Wrong username or password', 5000))
         throw err.message
       }
     }
-    window.localStorage.setItem('LoginedUser', JSON.stringify(loginUser))
-    blogService.setToken(loginUser.token)
+    storageService.setItem(JSON.stringify(loginUser))
+    userService.setToken(loginUser.token)
     dispatch(setUser(loginUser))
   }
 }
 
 export const detectLoggined = () => {
   return (dispatch) => {
-    const useStr = window.localStorage.getItem('LoginedUser')
+    const useStr = storageService.getItem()
     if (useStr !== null) {
-      const user = JSON.parse(useStr)
-      blogService.setToken(user.token)
       // todo: verify token
+      const user = JSON.parse(useStr)
+      userService.setToken(user.token)
       dispatch(setUser(user))
     } else {
-      console.log('localStorage has no value for key of loginedUser')
+      console.log('please login in')
     }
   }
 }
@@ -51,13 +54,13 @@ export const detectLoggined = () => {
 export const logout = () => {
   return (dispatch) => {
     dispatch(setUser({}))
-    window.localStorage.clear()
+    storageService.clear()
   }
 }
 
 export const getUsers = async () => {
-  const users = await blogService.getAllUser()
+  const users = await usersService.getAll()
   return users
 }
 
-export default userSlice.reducer
+export default slice.reducer

@@ -52,8 +52,19 @@ export const initBlogList = () => {
 
 export const createNew = (blog) => {
   return async (dispatch) => {
-    const savedBlog = await blogService.add(blog)
-    dispatch(addBlog(savedBlog))
+    try {
+      const savedBlog = await blogService.add(blog)
+      dispatch(addBlog(savedBlog))
+      dispatch(
+        notify(
+          'green',
+          `a new blog ${savedBlog.title} by ${savedBlog.author}`,
+          3000
+        )
+      )
+    } catch (e) {
+      dispatch(notify('red', e.response.data.error), 5000)
+    }
   }
 }
 
@@ -80,14 +91,14 @@ export const handleBlogLike = ({ id, title, author, url, user, likes }) => {
       })
       dispatch(addLike(savedBlog.id))
     } catch (err) {
-      console.error(err)
+      console.error(err.response.data.error)
     }
   }
 }
 
 export const addComment = (id, content) => {
   return async (dispatch) => {
-    const savedComments = await blogService.addCommentWithBlog(id, content)
+    const savedComments = await blogService.addComment(id, content)
     dispatch(updateBlogCommentsById({ id, comments: savedComments }))
   }
 }

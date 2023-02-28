@@ -1,8 +1,9 @@
-import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate, useMatch } from 'react-router-dom'
 import { handleBlogLike, removeBy, addComment } from '../reduces/blogListReduce'
 import styled from 'styled-components'
 
+import { initBlogList } from '../reduces/blogListReduce'
 import throttle from '../utils/throttle'
 
 const Button = styled.button`
@@ -13,9 +14,13 @@ const Button = styled.button`
   border-radius: 2px;
   background-color: lightblue;
 `
-const Blog = ({ blog, user }) => {
+const Blog = () => {
+  const { user, blogs } = useSelector((s) => s)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const match = useMatch('/blogs/:id')
+
+  const blog = match ? blogs.find((b) => b.id === match.params.id) : null
 
   const removeBlog = () => {
     if (window.confirm(`Remove blog ${blog.title} by ${blog.author}`)) {
@@ -50,7 +55,11 @@ const Blog = ({ blog, user }) => {
     evt.target.comment.value = ''
   }
 
+  // if (!blog) {
+  //   return null
+  // }
   if (!blog) {
+    dispatch(initBlogList())
     return null
   }
   return (

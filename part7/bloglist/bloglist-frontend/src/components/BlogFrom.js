@@ -1,9 +1,8 @@
 import { useDispatch } from 'react-redux'
 
 import { createNew } from '../reduces/blogListReduce'
-import { notify } from '../reduces/notifyReduce'
 
-const BlogForm = () => {
+const BlogForm = ({ hideMe }) => {
   const dispatch = useDispatch()
 
   const handleSubmit = (evt) => {
@@ -12,7 +11,10 @@ const BlogForm = () => {
     let author = evt.target.author.value
     let url = evt.target.url.value
     dispatch(createNew({ title, author, url }))
-    dispatch(notify('green', `a new blog ${title} by ${author}`, 3000))
+    evt.target.title.value = 0
+    evt.target.author.value = 0
+    evt.target.url.value = 0
+    hideMe()
   }
 
   return (
